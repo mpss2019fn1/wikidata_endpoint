@@ -15,6 +15,8 @@ class WikidataRequestExecutor:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if isinstance(exc_type, TypeError):
+            self._invoke_on_error(exc_val)
         self._owner.return_executor(self)
 
     def get(self, query, on_error=None, on_timeout=None):
@@ -30,7 +32,8 @@ class WikidataRequestExecutor:
         self._set_callbacks(on_error, on_timeout)
         self.query = query
         try:
-            self.response = requests.post(self._owner.config().remote_url(), params={"format": "json"}, data={"query": query})
+            self.response = requests.post(self._owner.config().remote_url(), params={"format": "json"},
+                                          data={"query": query})
             yield self._unpack_results()
         except requests.Timeout:
             self._invoke_on_timeout()
