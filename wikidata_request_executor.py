@@ -41,8 +41,8 @@ class WikidataRequestExecutor:
 
     def _unpack_results(self):
         if self.response.status_code != 200:
-            if self._on_error:
-                self._on_error()
+            # ToDo
+            self._invoke_on_error(None)
         try:
             for query_result in self.response.json()["results"]["bindings"]:
                 yield {key: query_result[key]["value"] for key in query_result.keys()}
