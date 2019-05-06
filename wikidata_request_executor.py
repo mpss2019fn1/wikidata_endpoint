@@ -35,7 +35,7 @@ class WikidataRequestExecutor:
         self._wait_while_blocked()
         try:
             self.response = requests.get(self._owner.config().remote_url(), params={"format": "json", "query": query})
-            yield self._unpack_results()
+            return self._unpack_results()
         except requests.Timeout:
             self._invoke_on_timeout()
 
@@ -46,7 +46,7 @@ class WikidataRequestExecutor:
         try:
             self.response = requests.post(self._owner.config().remote_url(), params={"format": "json"},
                                           data={"query": query})
-            yield self._unpack_results()
+            return self._unpack_results()
         except requests.Timeout:
             self._invoke_on_timeout()
 

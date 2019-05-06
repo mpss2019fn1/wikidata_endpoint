@@ -16,7 +16,7 @@ class WikidataEndpoint:
             self._executor_pool.put(WikidataRequestExecutor(self))
 
     def return_executor(self, executor):
-        if executor in self._executor_pool:
+        if executor in self._executor_pool.queue:
             return
 
         self._executor_pool.put(executor)
