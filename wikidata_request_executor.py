@@ -1,5 +1,13 @@
+import time
+
 import requests
 import logging
+import email.utils
+from datetime import datetime, timedelta, timezone
+
+
+class URITooLongException(Exception):
+    pass
 
 
 class WikidataRequestExecutor:
@@ -22,6 +30,9 @@ class WikidataRequestExecutor:
     def get(self, query, on_error=None, on_timeout=None):
         self._set_callbacks(on_error, on_timeout)
         self.query = query
+        if len(query) > 2048:
+            self._invoke_on_error(URITooLongException())
+        self._wait_while_blocked()
         try:
             self.response = requests.get(self._owner.config().remote_url(), params={"format": "json", "query": query})
             yield self._unpack_results()
@@ -31,6 +42,7 @@ class WikidataRequestExecutor:
     def post(self, query, on_error=None, on_timeout=None):
         self._set_callbacks(on_error, on_timeout)
         self.query = query
+        self._wait_while_blocked()
         try:
             self.response = requests.post(self._owner.config().remote_url(), params={"format": "json"},
                                           data={"query": query})
@@ -44,7 +56,6 @@ class WikidataRequestExecutor:
 
     def _unpack_results(self):
         if self.response.status_code != 200:
-            # ToDo
             self._invoke_on_error(None)
         try:
             for query_result in self.response.json()["results"]["bindings"]:
@@ -59,5 +70,27 @@ class WikidataRequestExecutor:
 
     def _invoke_on_error(self, error):
         logging.error(f"Error during request against {self._owner.config().remote_url()}", error)
+        if self.response and self.response.status_code == 429:
+            self._owner.execution_blocked_until = WikidataRequestExecutor._parse_http_retry(
+                self.response.headers["Retry-After"])
+            logging.warning(f"[429] Request got rejected. Blocked until {self._owner.execution_blocked_until}")
+
         if self._on_error:
             self._on_error(self, error)
+
+    @staticmethod
+    def _parse_http_retry(retry_header):
+        if not retry_header:
+            return None
+        gmt_timestamp = email.utils.parsedate_to_datetime(retry_header)
+        if not gmt_timestamp:
+            return datetime.now() + timedelta(seconds=int(retry_header))
+
+        return gmt_timestamp.astimezone(datetime.now(timezone.utc).astimezone().tzinfo)
+
+    def _wait_while_blocked(self):
+        if not self._owner.execution_blocked_until:
+            return
+
+        delta = self._owner.execution_blocked_until - datetime.now()
+        time.sleep(max(0, delta.total_seconds()))

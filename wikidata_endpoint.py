@@ -9,6 +9,7 @@ class WikidataEndpoint:
         self._config = config
         self._executor_pool = queue.Queue()
         self._initialize_executor_pool()
+        self.execution_blocked_until = None
 
     def _initialize_executor_pool(self):
         for i in range(self._config.concurrent_requests()):
