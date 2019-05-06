@@ -57,6 +57,13 @@ class WikidataRequestExecutor:
         self._on_error = on_error
         self._on_timeout = on_timeout
 
+    def _wait_while_blocked(self):
+        if not self._owner.execution_blocked_until:
+            return
+
+        delta = self._owner.execution_blocked_until - datetime.now()
+        time.sleep(max(0, delta.total_seconds()))
+
     def _unpack_results(self):
         if self.response.status_code != 200:
             self._invoke_on_error(None)
@@ -73,9 +80,29 @@ class WikidataRequestExecutor:
             self._on_timeout(self)
 
     def _invoke_on_error(self, error):
-        logging.error(f"Error during request against {self._owner.config().remote_url()}: {error}")
+        printed_error = error.__str__() if error else "No Error"
+        printed_status_code = self.response.status_code if self.response else "No Response"
+        logging.error(
+            f"Error during request against {self._owner.config().remote_url()}: [{printed_status_code}] {printed_error}")
         if self._propagate_faulty_request() and self._on_error:
             self._on_error(self, error)
+
+    def _propagate_faulty_request(self):
+        if not self.response:
+            return True
+
+        if self.response.status_code == 429:
+            self._owner.execution_blocked_until = WikidataRequestExecutor._parse_http_retry(
+                self.response.headers["Retry-After"])
+            logging.warning(f"Rate limit exceeded. Blocked until {self._owner.execution_blocked_until}")
+            return False
+
+        if self.response.status_code == 500:
+            if "java.util.concurrent.TimeoutException" in self.response.content:
+                self._invoke_on_timeout()
+                return False
+
+        return True
 
     @staticmethod
     def _parse_http_retry(retry_header):
@@ -86,24 +113,3 @@ class WikidataRequestExecutor:
             return datetime.now() + timedelta(seconds=int(retry_header))
 
         return gmt_timestamp.astimezone(datetime.now(timezone.utc).astimezone().tzinfo)
-
-    def _wait_while_blocked(self):
-        if not self._owner.execution_blocked_until:
-            return
-
-        delta = self._owner.execution_blocked_until - datetime.now()
-        time.sleep(max(0, delta.total_seconds()))
-
-    def _propagate_faulty_request(self):
-        if not self.response:
-            return True
-        if self.response.status_code == 429:
-            self._owner.execution_blocked_until = WikidataRequestExecutor._parse_http_retry(
-                self.response.headers["Retry-After"])
-            logging.warning(f"[429] Request got rejected. Blocked until {self._owner.execution_blocked_until}")
-            return False
-        if self.response.status_code == 500:
-            if "java.util.concurrent.TimeoutException" in self.response.content:
-                self._invoke_on_timeout()
-                return False
-        return True
