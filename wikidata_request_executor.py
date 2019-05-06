@@ -71,12 +71,7 @@ class WikidataRequestExecutor:
 
     def _invoke_on_error(self, error):
         logging.error(f"Error during request against {self._owner.config().remote_url()}", error)
-        if self.response and self.response.status_code == 429:
-            self._owner.execution_blocked_until = WikidataRequestExecutor._parse_http_retry(
-                self.response.headers["Retry-After"])
-            logging.warning(f"[429] Request got rejected. Blocked until {self._owner.execution_blocked_until}")
-
-        if self._on_error:
+        if self._propagate_faulty_request() and self._on_error:
             self._on_error(self, error)
 
     @staticmethod
@@ -95,3 +90,17 @@ class WikidataRequestExecutor:
 
         delta = self._owner.execution_blocked_until - datetime.now()
         time.sleep(max(0, delta.total_seconds()))
+
+    def _propagate_faulty_request(self):
+        if not self.response:
+            return True
+        if self.response.status_code == 429:
+            self._owner.execution_blocked_until = WikidataRequestExecutor._parse_http_retry(
+                self.response.headers["Retry-After"])
+            logging.warning(f"[429] Request got rejected. Blocked until {self._owner.execution_blocked_until}")
+            return False
+        if self.response.status_code == 500:
+            if "java.util.concurrent.TimeoutException" in self.response.content:
+                self._invoke_on_timeout()
+                return False
+        return True
