@@ -70,7 +70,7 @@ class WikidataRequestExecutor:
             self._on_timeout(self)
 
     def _invoke_on_error(self, error):
-        logging.error(f"Error during request against {self._owner.config().remote_url()}", error)
+        logging.error(f"Error during request against {self._owner.config().remote_url()}: {error}")
         if self._propagate_faulty_request() and self._on_error:
             self._on_error(self, error)
 
