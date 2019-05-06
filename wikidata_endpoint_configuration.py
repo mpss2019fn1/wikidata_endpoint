@@ -11,8 +11,8 @@ class WikidataEndpointConfiguration:
         self.config.read(config_file)
 
     def remote_url(self):
-        self.config.get("REMOTE", "url", fallback=WikidataEndpointConfiguration.DEFAULT_REMOTE_URL)
+        return self.config.get("REMOTE", "url", fallback=WikidataEndpointConfiguration.DEFAULT_REMOTE_URL)
 
     def concurrent_requests(self):
-        self.config.get("LIMITING", "concurrent_requests",
-                        fallback=WikidataEndpointConfiguration.DEFAULT_CONCURRENT_REQUESTS)
+        return int(self.config.get("LIMITING", "concurrent_requests",
+                                   fallback=WikidataEndpointConfiguration.DEFAULT_CONCURRENT_REQUESTS))
