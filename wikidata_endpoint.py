@@ -1,6 +1,6 @@
 import queue
 
-from wikidata_request_executor import WikidataRequestExecutor
+from . import WikidataRequestExecutor
 
 
 class WikidataEndpoint:
