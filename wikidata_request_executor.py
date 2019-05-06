@@ -34,7 +34,8 @@ class WikidataRequestExecutor:
             self._invoke_on_error(URITooLongException())
         self._wait_while_blocked()
         try:
-            self.response = requests.get(self._owner.config().remote_url(), params={"format": "json", "query": query})
+            self.response = requests.get(self._owner.config().remote_url(), params={"format": "json", "query": query},
+                                         timeout=self._owner.config().request_timeout())
             return self._unpack_results()
         except requests.Timeout:
             self._invoke_on_timeout()
@@ -45,7 +46,7 @@ class WikidataRequestExecutor:
         self._wait_while_blocked()
         try:
             self.response = requests.post(self._owner.config().remote_url(), params={"format": "json"},
-                                          data={"query": query})
+                                          data={"query": query}, timeout=self._owner.config().request_timeout())
             return self._unpack_results()
         except requests.Timeout:
             self._invoke_on_timeout()
