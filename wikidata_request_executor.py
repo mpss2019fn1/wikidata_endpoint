@@ -39,6 +39,7 @@ class WikidataRequestExecutor:
             return self._unpack_results()
         except requests.Timeout:
             self._invoke_on_timeout()
+        return []
 
     def post(self, query, on_error=None, on_timeout=None):
         self._set_callbacks(on_error, on_timeout)
@@ -50,6 +51,7 @@ class WikidataRequestExecutor:
             return self._unpack_results()
         except requests.Timeout:
             self._invoke_on_timeout()
+        return []
 
     def _set_callbacks(self, on_error, on_timeout):
         self._on_error = on_error
@@ -63,6 +65,7 @@ class WikidataRequestExecutor:
                 yield {key: query_result[key]["value"] for key in query_result.keys()}
         except Exception as e:
             self._invoke_on_error(e)
+        return []
 
     def _invoke_on_timeout(self):
         logging.error(f"Timeout during request against {self._owner.config().remote_url()}")
