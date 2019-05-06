@@ -3,6 +3,7 @@ import time
 import requests
 import logging
 import email.utils
+import uuid
 from datetime import datetime, timedelta, timezone
 
 
@@ -18,6 +19,7 @@ class WikidataRequestExecutor:
         self._on_timeout = None
         self.response = None
         self.query = None
+        self.id = uuid.uuid1()
 
     def __enter__(self):
         return self
@@ -35,7 +37,8 @@ class WikidataRequestExecutor:
         self._wait_while_blocked()
         try:
             self.response = requests.get(self._owner.config().remote_url(), params={"format": "json", "query": query},
-                                         timeout=self._owner.config().request_timeout())
+                                         timeout=self._owner.config().request_timeout(),
+                                         headers={"User-Agent": str(self.id)})
             return self._unpack_results()
         except requests.Timeout:
             self._invoke_on_timeout()
@@ -47,7 +50,8 @@ class WikidataRequestExecutor:
         self._wait_while_blocked()
         try:
             self.response = requests.post(self._owner.config().remote_url(), params={"format": "json"},
-                                          data={"query": query}, timeout=self._owner.config().request_timeout())
+                                          data={"query": query}, timeout=self._owner.config().request_timeout(),
+                                          headers={"User-Agent": str(self.id)})
             return self._unpack_results()
         except requests.Timeout:
             self._invoke_on_timeout()
