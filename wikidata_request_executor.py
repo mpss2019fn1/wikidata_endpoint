@@ -32,8 +32,10 @@ class WikidataRequestExecutor:
     def get(self, query, on_error=None, on_timeout=None):
         self._set_callbacks(on_error, on_timeout)
         self.query = query
-        if len(query) > 2048:
-            self._invoke_on_error(URITooLongException())
+        max_query_len = 2048
+        if len(query) > max_query_len:
+            self._invoke_on_error(
+                URITooLongException(f"Request URI exceeds maximum length of {max_query_len} (currently {len(query)})"))
         self._wait_while_blocked()
         try:
             self.response = requests.get(self._owner.config().remote_url(), params={"format": "json", "query": query},
