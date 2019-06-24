@@ -5,6 +5,7 @@ class WikidataEndpointConfiguration:
     DEFAULT_REMOTE_URL = "https://query.wikidata.org"
     DEFAULT_CONCURRENT_REQUESTS = 5
     DEFAULT_REQUEST_TIMEOUT = 60
+    DEFAULT_MAX_QUERY_LENGTH = 2048
     DEFAULT_WITH_RETURN_TYPE = False
 
     config = configparser.ConfigParser()
@@ -17,6 +18,9 @@ class WikidataEndpointConfiguration:
 
     def concurrent_requests(self):
         return int(self.config.get("LIMITING", "concurrent_requests", fallback=self.DEFAULT_CONCURRENT_REQUESTS))
+
+    def max_query_length(self):
+        return int(self.config.get("LIMITING", "max_query_length", fallback=self.DEFAULT_MAX_QUERY_LENGTH))
 
     def request_timeout(self):
         return int(self.config.get("LIMITING", "request_timeout", fallback=self.DEFAULT_REQUEST_TIMEOUT))

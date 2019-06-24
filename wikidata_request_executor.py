@@ -6,9 +6,8 @@ import email.utils
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from return_types.literal import LiteralReturnType
-from return_types.string_literal import StringLiteralReturnType
-from return_types.uri import UriReturnType
+from wikidata_endpoint.return_types.datatype import DatatypeLiteralReturnType
+from .return_types import LiteralReturnType, StringLiteralReturnType, UriReturnType
 
 
 class URITooLongException(Exception):
@@ -36,7 +35,7 @@ class WikidataRequestExecutor:
     def get(self, query, on_error=None, on_timeout=None):
         self._set_callbacks(on_error, on_timeout)
         self.query = query
-        max_query_len = 2048
+        max_query_len = self._owner.config().max_query_length()
         if len(query) > max_query_len:
             self._invoke_on_error(
                 URITooLongException(f"Request URI exceeds maximum length of {max_query_len} (currently {len(query)})"))
@@ -79,20 +78,24 @@ class WikidataRequestExecutor:
         if query_result['type'] == 'uri':
             return UriReturnType(query_result['value'])
         elif query_result['type'] == 'literal':
-            return StringLiteralReturnType(query_result['value'], query_result['xml:lang']) \
-                if 'xml:lang' in query_result.keys() else LiteralReturnType(query_result['value'])
+            if 'xml:lang' in query_result.keys():
+                return StringLiteralReturnType(query_result['value'], query_result['xml:lang'])
+            if 'datatype' in query_result.keys():
+                return DatatypeLiteralReturnType(query_result['value'], query_result['datatype'])
+            else:
+                return LiteralReturnType(query_result['value'])
         else:
             raise Exception(f"Invalid type {query_result['type']}")
 
     def _unpack_results(self):
+        if self.response.status_code != 200:
+            self._invoke_on_error(None)
         if self._owner.config().with_return_type():
             return self._unpack_results_with_type()
         else:
             return self._unpack_results_without_type()
 
     def _unpack_results_without_type(self):
-        if self.response.status_code != 200:
-            self._invoke_on_error(None)
         try:
             for query_result in self.response.json()["results"]["bindings"]:
                 yield {key: query_result[key]["value"] for key in query_result.keys()}
@@ -101,8 +104,6 @@ class WikidataRequestExecutor:
         return []
 
     def _unpack_results_with_type(self):
-        if self.response.status_code != 200:
-            self._invoke_on_error(None)
         try:
             for query_result in self.response.json()["results"]["bindings"]:
                 yield {key: self._parse_unpacked_results(query_result[key]) for key in query_result.keys()}
