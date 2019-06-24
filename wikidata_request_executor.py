@@ -6,9 +6,7 @@ import email.utils
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from return_types.literal import LiteralReturnType
-from return_types.string_literal import StringLiteralReturnType
-from return_types.uri import UriReturnType
+from .return_types import LiteralReturnType, StringLiteralReturnType, UriReturnType
 
 
 class URITooLongException(Exception):

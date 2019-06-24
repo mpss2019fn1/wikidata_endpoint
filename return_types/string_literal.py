@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
-from return_types.literal import LiteralReturnType
-
+from .literal import LiteralReturnType
 
 @dataclass
 class StringLiteralReturnType(LiteralReturnType):
