@@ -34,7 +34,7 @@ class WikidataRequestExecutor:
     def get(self, query, on_error=None, on_timeout=None):
         self._set_callbacks(on_error, on_timeout)
         self.query = query
-        max_query_len = 2048
+        max_query_len = self._owner.config().max_query_length()
         if len(query) > max_query_len:
             self._invoke_on_error(
                 URITooLongException(f"Request URI exceeds maximum length of {max_query_len} (currently {len(query)})"))
