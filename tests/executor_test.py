@@ -1,6 +1,6 @@
-from wikidata_request_executor import WikidataRequestExecutor
-from wikidata_endpoint_configuration import WikidataEndpointConfiguration
-from wikidata_endpoint import WikidataEndpoint
+from ..wikidata_request_executor import WikidataRequestExecutor
+from ..wikidata_endpoint_configuration import WikidataEndpointConfiguration
+from ..wikidata_endpoint import WikidataEndpoint
 from pathlib import Path
 from pytest import fixture
 
