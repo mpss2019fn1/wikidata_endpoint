@@ -1,0 +1,24 @@
+{
+  "head" : {
+    "vars" : [ "a", "b", "c" ]
+  },
+  "results" : {
+    "bindings" : [ {
+      "a" : {
+        "type" : "uri",
+        "value" : "http://test.example"
+      },
+      "b" : {
+        "xml:lang" : "en",
+        "datatype" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString",
+        "type" : "literal",
+        "value" : "Test"
+      },
+      "c" : {
+        "datatype" : "http://www.w3.org/2001/XMLSchema#integer",
+        "type" : "literal",
+        "value" : "42"
+      }
+    } ]
+  }
+}
