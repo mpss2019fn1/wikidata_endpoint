@@ -6,7 +6,6 @@ import email.utils
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from wikidata_endpoint.return_types.datatype import DatatypeLiteralReturnType
 from .return_types import LiteralReturnType, StringLiteralReturnType, UriReturnType
 
 
