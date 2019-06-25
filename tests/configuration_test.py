@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from wikidata_endpoint.wikidata_endpoint_configuration import WikidataEndpointConfiguration
+from ..wikidata_endpoint_configuration import WikidataEndpointConfiguration
 
 from pytest import fixture
 
