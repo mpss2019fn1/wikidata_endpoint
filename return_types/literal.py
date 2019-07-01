@@ -5,5 +5,5 @@ from dataclasses import dataclass
 class LiteralReturnType:
     value: str
 
-    def sparql_escape(self):
-        return self.value
+    def sparql_escape(self, quote_char="'"):
+        return quote_char + self.value.replace(quote_char, '\\' + quote_char) + quote_char
