@@ -6,8 +6,7 @@ import email.utils
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from wikidata_endpoint.return_types.datatype import DatatypeLiteralReturnType
-from .return_types import LiteralReturnType, StringLiteralReturnType, UriReturnType
+from .return_types import LiteralReturnType, StringLiteralReturnType, UriReturnType, DatatypeLiteralReturnType
 
 
 class URITooLongException(Exception):
@@ -122,8 +121,8 @@ class WikidataRequestExecutor:
     def _invoke_on_error(self, error):
         printed_error = error.__str__() if error else "No Error"
         printed_status_code = self.response.status_code if self.response else "No Response"
-        logging.error(
-            f"Error during request against {self._owner.config().remote_url()}: [{printed_status_code}] {printed_error}")
+        logging.error(f"Error during request against"
+                      f"{self._owner.config().remote_url()}: [{printed_status_code}] {printed_error}")
         if self._propagate_faulty_request() and self._on_error:
             self._on_error(self, error)
 
