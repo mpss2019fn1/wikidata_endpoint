@@ -77,6 +77,9 @@ class WikidataRequestExecutor:
     def _parse_unpacked_results(query_result):
         if query_result['type'] == 'uri':
             return UriReturnType(query_result['value'])
+        elif query_result['type'] == 'bnode':
+            # ToDo: Handle bnode properly?
+            return LiteralReturnType(query_result['value'])
         elif query_result['type'] == 'literal':
             if 'xml:lang' in query_result.keys():
                 return StringLiteralReturnType(query_result['value'], query_result['xml:lang'])
