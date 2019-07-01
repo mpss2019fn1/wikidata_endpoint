@@ -9,4 +9,4 @@ class StringLiteralReturnType(LiteralReturnType):
     language: str
 
     def sparql_escape(self, quote_char="'"):
-        super().sparql_escape(quote_char) + '@' + self.language
+        return super().sparql_escape(quote_char) + '@' + self.language
