@@ -50,6 +50,7 @@ class WikidataRequestExecutor:
         return []
 
     def post(self, query, on_error=None, on_timeout=None):
+        print("Start Query")
         self._set_callbacks(on_error, on_timeout)
         self.query = query
         self._wait_while_blocked()
@@ -57,6 +58,7 @@ class WikidataRequestExecutor:
             self.response = requests.post(self._owner.config().remote_url(), params={"format": "json"},
                                           data={"query": query}, timeout=self._owner.config().request_timeout(),
                                           headers={"User-Agent": str(self.id)})
+            print("End Query")
             return self._unpack_results()
         except requests.Timeout:
             self._invoke_on_timeout()
@@ -77,6 +79,9 @@ class WikidataRequestExecutor:
     def _parse_unpacked_results(query_result):
         if query_result['type'] == 'uri':
             return UriReturnType(query_result['value'])
+        elif query_result['type'] == 'bnode':
+            # ToDo: Handle bnode properly?
+            return LiteralReturnType(query_result['value'])
         elif query_result['type'] == 'literal':
             if 'xml:lang' in query_result.keys():
                 return StringLiteralReturnType(query_result['value'], query_result['xml:lang'])
